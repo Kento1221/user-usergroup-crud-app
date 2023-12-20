@@ -1,0 +1,40 @@
+services:
+  php:
+    image: php:7.4-apache
+    ports:
+      - "8000:80"
+    volumes:
+      - .:/var/www/html
+    depends_on:
+      - mariadb
+    # Odkomentuj poniższe linie, jeśli chcesz użyć Redis
+    # - redis
+    environment:
+      MYSQL_HOST: mariadb
+      MYSQL_USER: exampleuser
+      MYSQL_PASSWORD: examplepass
+      MYSQL_DB: exampledb
+      # REDIS_HOST: redis
+    restart: always
+
+  mariadb:
+    image: mariadb
+    ports:
+      - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: exampledb
+      MYSQL_USER: exampleuser
+      MYSQL_PASSWORD: examplepass
+    restart: always
+
+  # Redis service (opcjonalny)
+  # redis:
+  #   image: redis:alpine
+  #   ports:
+  #     - "6379:6379"
+
+volumes:
+  db_data: {}

@@ -1,0 +1,17 @@
+{
+    "name": "kento1221/user-usergroup-crud-app",
+    "description": "A php app for CRUD operations on User and UserGroup data structures.",
+    "type": "project",
+    "autoload": {
+        "psr-4": {
+            "Kento1221\\UserUsergroupCrudApp\\": "app/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Kamil",
+            "email": "kamilorkisz@gmail.com"
+        }
+    ],
+    "require": {}
+}
