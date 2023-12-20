@@ -7,14 +7,11 @@ services:
       - .:/var/www/html
     depends_on:
       - mariadb
-    # Odkomentuj poniższe linie, jeśli chcesz użyć Redis
-    # - redis
     environment:
       MYSQL_HOST: mariadb
-      MYSQL_USER: exampleuser
-      MYSQL_PASSWORD: examplepass
-      MYSQL_DB: exampledb
-      # REDIS_HOST: redis
+      MYSQL_USER: db
+      MYSQL_PASSWORD: db
+      MYSQL_DB: db
     restart: always
 
   mariadb:
@@ -29,12 +26,6 @@ services:
       MYSQL_USER: exampleuser
       MYSQL_PASSWORD: examplepass
     restart: always
-
-  # Redis service (opcjonalny)
-  # redis:
-  #   image: redis:alpine
-  #   ports:
-  #     - "6379:6379"
 
 volumes:
   db_data: {}
