@@ -2,6 +2,10 @@
     "name": "kento1221/user-usergroup-crud-app",
     "description": "A php app for CRUD operations on User and UserGroup data structures.",
     "type": "project",
+    "scripts": {
+        "migrate": "php database/migrate.php",
+        "seed": "php database/seed.php"
+    },
     "autoload": {
         "psr-4": {
             "Kento1221\\UserUsergroupCrudApp\\": "app/"
@@ -13,5 +17,8 @@
             "email": "kamilorkisz@gmail.com"
         }
     ],
-    "require": {}
+    "require": {
+      "ext-pdo": "*",
+      "ext-json": "*"
+    }
 }

@@ -1,8 +1,9 @@
 services:
   php:
-    image: php:7.4-apache
+    build: Docker/.
     ports:
       - "8000:80"
+      - "9003:9003"
     volumes:
       - .:/var/www/html
     depends_on:
@@ -13,6 +14,10 @@ services:
       MYSQL_PASSWORD: db
       MYSQL_DB: db
     restart: always
+    extra_hosts:
+      host.docker.internal: host-gateway
+    networks:
+      - user-usergroup-docker
 
   mariadb:
     image: mariadb
@@ -21,11 +26,15 @@ services:
     volumes:
       - db_data:/var/lib/mysql
     environment:
-      MYSQL_ROOT_PASSWORD: rootpassword
-      MYSQL_DATABASE: exampledb
-      MYSQL_USER: exampleuser
-      MYSQL_PASSWORD: examplepass
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: db
+      MYSQL_USER: db
+      MYSQL_PASSWORD: db
     restart: always
+    networks:
+      - user-usergroup-docker
 
 volumes:
-  db_data: {}
+  db_data: { }
+networks:
+  user-usergroup-docker:
