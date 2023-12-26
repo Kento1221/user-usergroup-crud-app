@@ -13,6 +13,9 @@ class UserGroup extends Model
         'name'
     ];
 
+    /**
+     * @throws \Exception
+     */
     public function users(): array
     {
         $db = Database::getConnection();
@@ -22,8 +25,13 @@ class UserGroup extends Model
 
         $stmt = $db->prepare($query);
         $stmt->bindValue(':groupId', $this->getKey(), PDO::PARAM_INT);
-        $stmt->execute();
 
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $stmt->execute();
+        $userModel = (new User())->with(['created_at', 'updated_at']);
+
+        return array_map(
+            fn(array $user) => $userModel->hydrateModel($user),
+            $stmt->fetchAll(PDO::FETCH_ASSOC) ?: []
+        );
     }
 }

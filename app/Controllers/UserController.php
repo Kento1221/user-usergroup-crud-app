@@ -163,4 +163,23 @@ class UserController extends Controller
             ]);
         }
     }
+
+    public function listByGroup()
+    {
+        try {
+            $groupId = filter_input(INPUT_GET, 'groupId', FILTER_VALIDATE_INT);
+
+            $group = $this->userGroupModel->find($groupId);
+
+            $this->assignData([
+                'users' => $group->users(),
+                'group' => $group
+            ]);
+
+            $this->render('user/listByGroup');
+
+        } catch (\Exception $exception) {
+            $this->render('404');
+        }
+    }
 }

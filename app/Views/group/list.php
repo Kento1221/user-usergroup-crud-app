@@ -57,6 +57,7 @@ $nextPage = $isNextPage ? $page + 1 : $page;
                     <td class="text-center text-xs">$group->updated_at</td>
                     <td class="text-center">
                         <div class="flex items-center gap-2 justify-end">
+                            <a href="/user/listByGroup?groupId=$group->id" class="bg-yellow-400 text-sm hover:bg-yellow-500 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Show users</a>
                             <a href="/group/edit?groupId=$group->id" class="bg-blue-500 text-sm hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Edit</a>
                             <button class="delete-group text-sm bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" data-group-id="$group->id">Delete</button>
                         </div>

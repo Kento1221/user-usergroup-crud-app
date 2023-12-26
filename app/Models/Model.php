@@ -84,15 +84,16 @@ class Model
 
         $stmt = $db->prepare($query);
         $stmt->bindParam(':id', $id, \PDO::PARAM_INT);
+        $stmt->execute();
 
-        if ($stmt->execute()) {
-            return $this->hydrateModel($stmt->fetch(\PDO::FETCH_ASSOC));
+        if (($data = $stmt->fetch(\PDO::FETCH_ASSOC))) {
+            return $this->hydrateModel($data);
         }
 
         throw new \Exception("User of id `$id` not found.");
     }
 
-    private function hydrateModel(array $data, bool $withHidden = false): self
+    protected function hydrateModel(array $data, bool $withHidden = false): self
     {
         $model = new static();
         $fields = $this->getFieldsToShow($withHidden);

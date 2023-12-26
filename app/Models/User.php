@@ -21,6 +21,9 @@ class User extends Model
         'password'
     ];
 
+    /**
+     * @throws \Exception
+     */
     public function groups(): array
     {
         $db = Database::getConnection();
@@ -30,8 +33,13 @@ class User extends Model
 
         $stmt = $db->prepare($query);
         $stmt->bindValue(':userId', $this->getKey(), PDO::PARAM_INT);
-        $stmt->execute();
 
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $stmt->execute();
+        $groupModel = (new UserGroup())->with(['created_at', 'updated_at']);
+
+        return array_map(
+            fn(array $group) => $groupModel->hydrateModel($group),
+            $stmt->fetchAll(PDO::FETCH_ASSOC) ?: []
+        );
     }
 }
