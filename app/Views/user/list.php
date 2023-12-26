@@ -57,12 +57,12 @@ $nextPage = $isNextPage ? $page + 1 : $page;
                     <td class="text-center">$user->first_name $user->last_name</td>
                     <td class="text-center">$user->date_of_birth</td>
                     <td class="text-center">$groupCount</td>
-                    <td class="text-center">$user->created_at</td>
-                    <td class="text-center">$user->updated_at</td>
+                    <td class="text-center text-xs">$user->created_at</td>
+                    <td class="text-center text-xs">$user->updated_at</td>
                     <td class="text-center">
                         <div class="flex items-center gap-2 justify-end">
-                            <a href="/user/edit?userId=$user->id" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Edit</a>
-                            <button class="delete-user bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" data-user-id="$user->id">Delete</button>
+                            <a href="/user/edit?userId=$user->id" class="bg-blue-500 text-sm hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Edit</a>
+                            <button class="delete-user text-sm bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" data-user-id="$user->id">Delete</button>
                         </div>
                     </td>
                 </tr>

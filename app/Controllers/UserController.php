@@ -119,6 +119,10 @@ class UserController extends Controller
 
     public function create()
     {
+        $this->assignData([
+            'groups' => $this->userGroup->getAll()
+        ]);
+
         $this->render('user/new');
     }
 
@@ -129,11 +133,18 @@ class UserController extends Controller
             $data['password'] = password_hash($data['password'], PASSWORD_BCRYPT, ['cost' => 12]);
 
             $createdUser = $this->user->create($data);
+            $appended = $createdUser->appendMany(
+                $data['groups'],
+                'user_user_groups',
+                'user_id',
+                'user_group_id'
+            );
 
             $this->jsonResponse([
                 'success' => true,
                 'user'    => $createdUser,
                 'message' => 'New user has been created successfully.'
+                    . (!$appended && 'Unfortunately, groups could not be appended to the user.')
             ]);
 
         } catch (\Exception $exception) {
