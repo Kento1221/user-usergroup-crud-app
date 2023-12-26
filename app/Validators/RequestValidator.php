@@ -1,6 +1,6 @@
 <?php
 
-namespace Kento1221\UserUsergroupCrudApp\Validator;
+namespace Kento1221\UserUsergroupCrudApp\Validators;
 
 interface RequestValidator
 {

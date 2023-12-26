@@ -38,6 +38,7 @@ $nextPage = $isNextPage ? $page + 1 : $page;
             <th class="px-4 py-2">E-mail</th>
             <th class="px-4 py-2">Name</th>
             <th class="px-4 py-2">Date of birth</th>
+            <th class="px-4 py-2">Group count</th>
             <th class="px-4 py-2">Created at</th>
             <th class="px-4 py-2">Updated at</th>
             <th class="px-4 py-2">Actions</th>
@@ -47,12 +48,15 @@ $nextPage = $isNextPage ? $page + 1 : $page;
         <?php
         foreach ($users ?? [] as $index => $user) {
             $rowClasses = $index % 2 ? 'bg-gray-100' : '';
+            $groupCount = count(array_column($user->groups(), 'name'));
+
             echo <<<EOL
                 <tr class="$rowClasses hover:bg-gray-200">
                     <td class="text-center">$user->id</td>
                     <td class="text-center">$user->email</td>
                     <td class="text-center">$user->first_name $user->last_name</td>
                     <td class="text-center">$user->date_of_birth</td>
+                    <td class="text-center">$groupCount</td>
                     <td class="text-center">$user->created_at</td>
                     <td class="text-center">$user->updated_at</td>
                     <td class="text-center">
@@ -70,7 +74,6 @@ $nextPage = $isNextPage ? $page + 1 : $page;
     <div class="flex justify-center mt-4">
         <a href="/user?page=<?php echo isset($page) && $page > 1 ? $page - 1 : $page; ?>"
            class="mx-1 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">Previous</a>
-        <!-- Możesz dodać tutaj numerację stron, jeśli jest potrzebna -->
         <a href="/user?page=<?php echo isset($isNextPage) && $isNextPage ? $page + 1 : $page; ?>"
            class="mx-1 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">Next</a>
     </div>

@@ -2,8 +2,6 @@
 
 namespace Kento1221\UserUsergroupCrudApp\Models;
 
-use PDO;
-
 class Model
 {
     protected ?string $table       = null;
@@ -15,15 +13,20 @@ class Model
     protected function getFieldsToShow(bool $withHidden = false): array
     {
         return [
-            $this->getKey(),
+            $this->getKeyName(),
             ...array_filter($this->fillable, fn($field) => $withHidden ? $field : !in_array($field, $this->hidden)),
             ...$this->withColumns
         ];
     }
 
-    protected function getKey(): string
+    protected function getKeyName(): string
     {
         return $this->primaryKey;
+    }
+
+    protected function getKey(): int
+    {
+        return $this->{$this->getKeyName()};
     }
 
     protected function getTable(): string
@@ -46,7 +49,7 @@ class Model
     {
         $fields = implode(', ', $this->getFieldsToShow());
         $table = $this->getTable();
-        $primaryKey = $this->getKey();
+        $primaryKey = $this->getKeyName();
 
         $db = \Kento1221\UserUsergroupCrudApp\Facades\Database::getConnection();
         $data = $db->query("SELECT $fields FROM $table ORDER BY $primaryKey LIMIT $limit OFFSET $offset;")
@@ -65,7 +68,7 @@ class Model
 
         $fields = implode(', ', $this->getFieldsToShow());
         $table = $this->getTable();
-        $primaryKey = $this->getKey();
+        $primaryKey = $this->getKeyName();
 
         $db = \Kento1221\UserUsergroupCrudApp\Facades\Database::getConnection();
         $data = $db->query("SELECT $fields FROM $table WHERE $primaryKey = $id;")->fetch();
@@ -93,7 +96,7 @@ class Model
     {
         try {
             $table = $this->getTable();
-            $primaryKey = $this->getKey();
+            $primaryKey = $this->getKeyName();
             $parameters = [];
             $valuesToBind = [];
 
@@ -129,7 +132,7 @@ class Model
     public function delete(int $id): bool
     {
         $table = $this->getTable();
-        $primaryKey = $this->getKey();
+        $primaryKey = $this->getKeyName();
 
         $db = \Kento1221\UserUsergroupCrudApp\Facades\Database::getConnection();
         return (bool)$db->exec("DELETE FROM $table WHERE $primaryKey = $id;");
@@ -145,7 +148,7 @@ class Model
     {
         $table = $this->getTable();
         $dataKeys = array_keys($data);
-        $primaryKey = $this->getKey();
+        $primaryKey = $this->getKeyName();
         $columns = [];
         $placeholders = [];
         $valuesToBind = [];
@@ -173,5 +176,150 @@ class Model
         }
 
         throw new \Exception('New user could not be created');
+    }
+
+    /**
+     * Attach related model id in many-to-many relationship table.
+     * @param int $relatedKeyValue ID value of related model.
+     * @param string $foreignTable the name of many-to-many relationship-linking table.
+     * @param string $foreignTableLocalKey the colum name in the $foreignTable that holds called class's id.
+     * @param string $foreignTableRelatedKey the column name in the $foreignTable that holds related model's id.
+     * @return bool
+     */
+    public function append(
+        int    $relatedKeyValue,
+        string $foreignTable,
+        string $foreignTableLocalKey,
+        string $foreignTableRelatedKey
+    ): bool {
+        $query = "INSERT INTO $foreignTable ($foreignTableLocalKey, $foreignTableRelatedKey) 
+                  VALUES (?, ?) 
+                  ON DUPLICATE UPDATE id = id;";
+
+        $db = \Kento1221\UserUsergroupCrudApp\Facades\Database::getConnection();
+        $stmt = $db->prepare($query);
+
+        return $stmt->execute($relatedKeyValue);
+    }
+
+    /**
+     * Attach many related model ids in many-to-many relationship table.
+     * @param array $relatedKeyValues ID values of related model.
+     * @param string $foreignTable the name of many-to-many relationship-linking table.
+     * @param string $foreignTableLocalKey the colum name in the $foreignTable that holds called class's id.
+     * @param string $foreignTableRelatedKey the column name in the $foreignTable that holds related model's id.
+     * @return bool
+     */
+    public function appendMany(
+        array  $relatedKeyValues,
+        string $foreignTable,
+        string $foreignTableLocalKey,
+        string $foreignTableRelatedKey
+    ): bool {
+
+        $wildcards = implode(', ', array_fill(0, count($relatedKeyValues), '(?, ?)')) ?: '?';
+        $query = "
+            INSERT INTO $foreignTable ($foreignTableLocalKey, $foreignTableRelatedKey) 
+            VALUES $wildcards 
+            ON DUPLICATE KEY UPDATE id = id;";
+
+        $values = [];
+        foreach ($relatedKeyValues ?: [0] as $relatedKeyValue) {
+            $values[] = $this->getKey();
+            $values[] = $relatedKeyValue;
+        }
+
+        $db = \Kento1221\UserUsergroupCrudApp\Facades\Database::getConnection();
+        $stmt = $db->prepare($query);
+
+        return $stmt->execute($values);
+    }
+
+    /**
+     * Sync (detach and attach) many related model ids in many-to-many relationship table.
+     * @param array $relatedKeyValues ID values of related model.
+     * @param string $foreignTable the name of many-to-many relationship-linking table.
+     * @param string $foreignTableLocalKey the colum name in the $foreignTable that holds called class's id.
+     * @param string $foreignTableRelatedKey the column name in the $foreignTable that holds related model's id.
+     * @return bool
+     * @throws \Exception
+     */
+    public function sync(
+        array  $relatedKeyValues,
+        string $foreignTable,
+        string $foreignTableLocalKey,
+        string $foreignTableRelatedKey
+    ): bool {
+
+        $detached = $this->detachMany(
+            $relatedKeyValues,
+            $foreignTable,
+            $foreignTableLocalKey,
+            $foreignTableRelatedKey
+        );
+
+        if (!$detached) {
+            throw new \Exception('Could not detach ids of: ' . implode(', ', $relatedKeyValues));
+        }
+
+        if (empty($relatedKeyValues)) {
+            return true;
+        }
+
+        $attached = $this->appendMany(
+            $relatedKeyValues,
+            $foreignTable,
+            $foreignTableLocalKey,
+            $foreignTableRelatedKey
+        );
+
+        if (!$attached) {
+            throw new \Exception('Could not attach ids of: ' . implode(', ', $relatedKeyValues));
+        }
+
+        return true;
+    }
+
+    /**
+     * Detach many related model ids from many-to-many relationship table.
+     * @param array $relatedKeyValues ID values of related model.
+     * @param string $foreignTable the name of many-to-many relationship-linking table.
+     * @param string $foreignTableLocalKey the colum name in the $foreignTable that holds called class's id.
+     * @param string $foreignTableRelatedKey the column name in the $foreignTable that holds related model's id.
+     * @return bool
+     */
+    public function detachMany(
+        array  $relatedKeyValues,
+        string $foreignTable,
+        string $foreignTableLocalKey,
+        string $foreignTableRelatedKey
+    ): bool {
+        $db = \Kento1221\UserUsergroupCrudApp\Facades\Database::getConnection();
+
+        $ids = implode(',', array_fill(0, count($relatedKeyValues), '?')) ?: '?';
+        $deleteQuery = "
+            DELETE FROM $foreignTable 
+            WHERE $foreignTableLocalKey = ? 
+            AND $foreignTableRelatedKey NOT IN ($ids)";
+
+        $deleteStmt = $db->prepare($deleteQuery);
+        return $deleteStmt->execute([$this->getKey(), ...($relatedKeyValues ?: [0])]);
+    }
+
+    public function detach(
+        int    $relatedKeyValue,
+        string $foreignTable,
+        string $foreignTableLocalKey,
+        string $foreignTableRelatedKey
+    ): bool {
+
+        $db = \Kento1221\UserUsergroupCrudApp\Facades\Database::getConnection();
+        $deleteQuery = "
+            DELETE FROM $foreignTable 
+            WHERE $foreignTableLocalKey = ? 
+            AND $foreignTableRelatedKey = ?";
+
+        $deleteStmt = $db->prepare($deleteQuery);
+        return $deleteStmt->execute([$this->getKey(), $relatedKeyValue]);
     }
 }

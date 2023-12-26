@@ -12,6 +12,8 @@ return "
             ON DELETE CASCADE,
         CONSTRAINT fk_user_group
             FOREIGN KEY (user_group_id) REFERENCES user_groups (id)
-            ON DELETE CASCADE
+            ON DELETE CASCADE,
+        CONSTRAINT uq_user_user_groups
+            UNIQUE (user_id, user_group_id)
     ) ENGINE=INNODB;
 ";

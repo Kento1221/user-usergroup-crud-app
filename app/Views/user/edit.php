@@ -10,6 +10,9 @@
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css"
           rel="stylesheet">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css"
+          rel="stylesheet"/>
+
 </head>
 <body class="bg-gray-100">
 <?php include __DIR__ . '/../Layout/navbar.php'; ?>
@@ -61,6 +64,24 @@
                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
         </div>
 
+        <div class="mb-6">
+            <label for="groups"
+                   class="block text-gray-700 text-sm font-bold mb-2">Groups:</label>
+            <select id="groups"
+                    name="groups[]"
+                    multiple="multiple"
+                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                <?php
+                foreach ($groups ?? [] as $group) {
+                    $isSelected = in_array($group->id, array_column($userGroups ?? [], 'id')) ? 'selected' : '';
+                    echo <<<EOL
+                        <option value="$group->id" $isSelected>$group->name</option>
+                    EOL;
+                }
+                ?>
+            </select>
+        </div>
+
         <div class="flex items-center justify-end">
             <button type="submit"
                     disabled
@@ -71,19 +92,30 @@
     </form>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script>
     $(document).ready(function () {
-        let originalUserHash = '<?php echo implode('-', [$user->email, $user->first_name, $user->last_name, $user->date_of_birth]); ?>';
+
+        let originalUserHash = '<?php echo implode('-', [
+            $user->email,
+            $user->first_name,
+            $user->last_name,
+            $user->date_of_birth,
+            implode(',', array_column($userGroups, 'id'))
+        ]); ?>';
+
+        const groupSelect = $("select#groups");
         const submitButton = $("#editUserForm button[type='submit']");
 
+        groupSelect.select2();
         const hashUserFields = () => {
-            const fieldIds = ["email", "firstName", "lastName", 'dateOfBirth'];
+            const fieldIds = ["email", "firstName", "lastName", 'dateOfBirth', 'groups'];
             let hash = "";
 
             for (let i = 0; i < fieldIds.length; i++) {
                 const data = $("#" + fieldIds[i]).val();
 
-                hash += data;
+                hash += Array.isArray(data) ? data.toString() : data;
 
                 if (i + 1 !== fieldIds.length) {
                     hash += "-";
@@ -92,7 +124,7 @@
             return hash;
         }
 
-        $("input").on("change", function (e) {
+        $("input, select").on("change", function (e) {
             const disable = hashUserFields() === originalUserHash;
             submitButton.prop("disabled", disable);
         });
@@ -106,7 +138,8 @@
                 email: $("#email").val(),
                 first_name: $("#firstName").val(),
                 last_name: $("#lastName").val(),
-                date_of_birth: $("#dateOfBirth").val()
+                date_of_birth: $("#dateOfBirth").val(),
+                groups: $("#groups").val()
             };
 
             $.ajax({
@@ -114,17 +147,17 @@
                 url: "/user/update",
                 data: data,
                 success: function (response) {
-                    console.log(response);
+
                     if (response.success) {
                         originalUserHash = hashUserFields()
                         showSuccess(response.message);
+                        submitButton.prop("disabled", true)
                     } else {
                         showError(response.message);
                     }
-                    submitButton.prop("disabled", true)
+
                 },
                 error: function (response) {
-                    console.error(response);
                     showError(response.message ?? null);
                 }
             });

@@ -4,17 +4,20 @@ declare(strict_types=1);
 namespace Kento1221\UserUsergroupCrudApp\Controllers;
 
 use Kento1221\UserUsergroupCrudApp\Models\User;
-use Kento1221\UserUsergroupCrudApp\Validator\StoreUserRequestValidator;
-use Kento1221\UserUsergroupCrudApp\Validator\UpdateUserRequestValidator;
+use Kento1221\UserUsergroupCrudApp\Models\UserGroup;
+use Kento1221\UserUsergroupCrudApp\Validators\StoreUserRequestValidator;
+use Kento1221\UserUsergroupCrudApp\Validators\UpdateUserRequestValidator;
 
 class UserController extends Controller
 {
-    protected User $user;
+    protected User      $user;
+    protected UserGroup $userGroup;
 
     public function __construct()
     {
         parent::__construct();
         $this->user = new User();
+        $this->userGroup = new UserGroup();
     }
 
     public function index()
@@ -45,7 +48,14 @@ class UserController extends Controller
         try {
             $id = filter_input(INPUT_GET, 'userId', FILTER_VALIDATE_INT) ?? -1;
 
-            $this->assignData(['user' => $this->user->getById($id)]);
+            /** @var User $user */
+            $user = $this->user->getById($id);
+
+            $this->assignData([
+                'user'       => $user,
+                'userGroups' => $user->groups(),
+                'groups'     => $this->userGroup->getAll()
+            ]);
 
             $this->render('user/edit');
 
@@ -59,10 +69,18 @@ class UserController extends Controller
         try {
             $data = UpdateUserRequestValidator::validate();
             $updated = $this->user->update($data['id'], $data);
+            $user = $this->user->getById($data['id']);
+
+            $synced = $user->sync(
+                $data['groups'],
+                'user_user_groups',
+                'user_id',
+                'user_group_id'
+            );
 
             $this->jsonResponse([
-                'success' => $updated,
-                'message' => $updated ? 'The user has been updated successfully!' : 'The user could not be updated.'
+                'success' => $updated && $synced,
+                'message' => $updated && $synced ? 'The user has been updated successfully!' : 'The user could not be updated.'
             ]);
 
         } catch (\Exception $exception) {
@@ -87,7 +105,11 @@ class UserController extends Controller
             die(422);
         }
 
-        $deleted = $this->user->delete($id);
+        try {
+            $deleted = $this->user->delete($id);
+        } catch (\Throwable $exception) {
+            die();
+        }
 
         $this->jsonResponse([
             'success' => $deleted,
