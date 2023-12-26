@@ -2,8 +2,7 @@
 
 namespace Kento1221\UserUsergroupCrudApp\Validators;
 
-use Kento1221\UserUsergroupCrudApp\Facades\Database;
-use PDO;
+use Kento1221\UserUsergroupCrudApp\Helpers\UserGroupHelper;
 
 class StoreUserRequestValidator implements RequestValidator
 {
@@ -20,7 +19,7 @@ class StoreUserRequestValidator implements RequestValidator
         $groups = filter_var_array($_POST['groups'] ?? [], FILTER_VALIDATE_INT);
 
         if ($groups) {
-            self::checkIfAllGroupIdsExist($groups);
+            UserGroupHelper::checkIfAllGroupIdsExistInDatabase($groups);
         }
 
         if (!$email || !$first_name || !$last_name || !$date_of_birth || !$password) {
@@ -37,29 +36,5 @@ class StoreUserRequestValidator implements RequestValidator
             'password'      => $password,
             'groups'        => $groups
         ];
-    }
-
-    /**
-     * @param $groups
-     * @return void
-     * @throws \Exception
-     */
-    public static function checkIfAllGroupIdsExist($groups): void
-    {
-        $db = Database::getConnection();
-        $wildcards = implode(',', array_fill(0, count($groups), '?'));
-
-        $query = "SELECT id FROM user_groups WHERE id IN ($wildcards)";
-        $stmt = $db->prepare($query);
-
-        $stmt->execute($groups);
-        $existingGroups = $stmt->fetchAll(PDO::FETCH_COLUMN, 0);
-
-        $missingGroupIds = array_diff($groups, $existingGroups);
-        if ($missingGroupIds) {
-            throw new \Exception('Not all groups exist in the database. GroupID that does not exist: '
-                . implode(', ', $missingGroupIds)
-            );
-        }
     }
 }
