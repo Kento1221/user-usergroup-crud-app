@@ -19,7 +19,11 @@ class StoreUserRequestValidator implements RequestValidator
         $groups = filter_var_array($_POST['groups'] ?? [], FILTER_VALIDATE_INT);
 
         if ($groups) {
-            UserGroupHelper::checkIfAllGroupIdsExistInDatabase($groups);
+            $allExist = UserGroupHelper::checkIfAllGroupIdsExistInDatabase($groups);
+
+            if (!$allExist) {
+                throw new \Exception('Not all groups exist in the database.');
+            }
         }
 
         if (!$email || !$first_name || !$last_name || !$date_of_birth || !$password) {

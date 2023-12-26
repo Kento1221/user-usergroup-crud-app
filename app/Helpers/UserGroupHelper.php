@@ -9,10 +9,10 @@ class UserGroupHelper
 {
     /**
      * @param array $groupIds
-     * @return void
+     * @return bool
      * @throws \Exception
      */
-    public static function checkIfAllGroupIdsExistInDatabase(array $groupIds): void
+    public static function checkIfAllGroupIdsExistInDatabase(array $groupIds): bool
     {
         $db = Database::getConnection();
         $wildcards = implode(',', array_fill(0, count($groupIds), '?'));
@@ -23,11 +23,18 @@ class UserGroupHelper
         $stmt->execute($groupIds);
         $existingGroups = $stmt->fetchAll(PDO::FETCH_COLUMN, 0);
 
-        $missingGroupIds = array_diff($groupIds, $existingGroups);
-        if ($missingGroupIds) {
-            throw new \Exception('Not all groups exist in the database. GroupIds that do not exist: '
-                . implode(', ', $missingGroupIds) . '.'
-            );
-        }
+        return !array_diff($groupIds, $existingGroups);
+    }
+
+    public static function checkIfNameExistsInDatabase(string $name): bool
+    {
+        $db = Database::getConnection();
+        $query = "SELECT id FROM user_groups WHERE name = :name;";
+
+        $stmt = $db->prepare($query);
+        $stmt->bindParam(':name', $name);
+        $stmt->execute();
+
+        return $stmt->rowCount() > 0;
     }
 }

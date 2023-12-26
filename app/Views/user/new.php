@@ -91,7 +91,9 @@
                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
         </div>
 
-        <div class="flex items-center justify-end">
+        <div class="flex items-center justify-between">
+            <?php include __DIR__ . '/../Layout/back-button.php'; ?>
+
             <button type="submit"
                     class="bg-blue-400 enabled:bg-blue-500 enabled:hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
                 Save
@@ -129,7 +131,7 @@
                 url: "/user/store",
                 data: data,
                 success: function (response) {
-                    console.log(response);
+
                     if (response.success) {
                         showSuccess(response.message);
                         setTimeout(function () {
@@ -140,7 +142,6 @@
                     }
                 },
                 error: function (response) {
-                    console.error(response);
                     showError(response.message ?? null);
                 }
             });

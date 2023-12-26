@@ -10,6 +10,8 @@ use Kento1221\UserUsergroupCrudApp\Validators\UpdateUserRequestValidator;
 
 class UserController extends Controller
 {
+    const LIST_MAX_ITEMS_PER_PAGE = 10;
+
     protected User      $user;
     protected UserGroup $userGroup;
 
@@ -27,12 +29,13 @@ class UserController extends Controller
 
     public function list()
     {
-        $limit = 10;
         $page = filter_input(INPUT_GET, 'page', FILTER_VALIDATE_INT) ?? 1;
 
-        $users = $this->user->with(['created_at', 'updated_at'])
-                            ->get($limit, $limit * ($page - 1));
-        $nextPageCount = count($this->user->get($limit, $limit * $page));
+        $users = $this->user
+            ->with(['created_at', 'updated_at'])
+            ->get(self::LIST_MAX_ITEMS_PER_PAGE, self::LIST_MAX_ITEMS_PER_PAGE * ($page - 1));
+
+        $nextPageCount = count($this->user->get(self::LIST_MAX_ITEMS_PER_PAGE, self::LIST_MAX_ITEMS_PER_PAGE * $page));
 
         $this->assignData([
             'users'      => $users,
@@ -107,14 +110,18 @@ class UserController extends Controller
 
         try {
             $deleted = $this->user->delete($id);
-        } catch (\Throwable $exception) {
-            die();
-        }
 
-        $this->jsonResponse([
-            'success' => $deleted,
-            'message' => $deleted ? 'The user has been deleted successfully!' : 'The user could not be deleted.'
-        ]);
+            $this->jsonResponse([
+                'success' => $deleted,
+                'message' => $deleted ? 'The user has been deleted successfully!' : 'The user could not be deleted.'
+            ]);
+
+        } catch (\Throwable $exception) {
+            $this->jsonResponse([
+                'success' => false,
+                'message' => 'The user could not be deleted.'
+            ]);
+        }
     }
 
     public function create()

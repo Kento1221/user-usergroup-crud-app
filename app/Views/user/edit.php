@@ -6,7 +6,7 @@
           content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
     <meta http-equiv="X-UA-Compatible"
           content="ie=edge">
-    <title>User</title>
+    <title>Edit user</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css"
           rel="stylesheet">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -82,12 +82,20 @@
             </select>
         </div>
 
-        <div class="flex items-center justify-end">
-            <button type="submit"
-                    disabled
-                    class="bg-blue-400 enabled:bg-blue-500 enabled:hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
-                Save
-            </button>
+        <div class="flex items-center justify-between">
+            <?php include __DIR__ . '/../Layout/back-button.php'; ?>
+
+            <div>
+                <button type="button"
+                        class="delete-user bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                    Delete
+                </button>
+                <button type="submit"
+                        disabled
+                        class="bg-blue-400 enabled:bg-blue-500 enabled:hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                    Save
+                </button>
+            </div>
         </div>
     </form>
 </div>
@@ -161,6 +169,27 @@
                     showError(response.message ?? null);
                 }
             });
+        });
+
+        $('button.delete-user').click(function () {
+            const userId = $("input#userId").val();
+
+            if (confirm('Are you sure you want to delete this user?')) {
+                $.ajax({
+                    url: '/user/delete?userId=' + userId,
+                    type: 'DELETE',
+                    success: function (result) {
+                        if (result.success) {
+                            showSuccess(result.message ?? 'The user has been deleted successfully!');
+                            setTimeout(function () {
+                                window.location = "/user";
+                            }, 1500);
+                        } else {
+                            showError(result.message ?? 'The user could not be deleted.');
+                        }
+                    }
+                });
+            }
         });
     });
 </script>
