@@ -24,9 +24,18 @@ class Model
         return $this->primaryKey;
     }
 
-    protected function getKey(): int
+    /**
+     * @throws \Exception
+     */
+    protected function getKey(): ?int
     {
-        return $this->{$this->getKeyName()};
+        $key = $this->{$this->getKeyName()};
+
+        if (!$key) {
+            throw new \Exception('Missing ID key in model instance.');
+        }
+
+        return $key;
     }
 
     protected function getTable(): string
@@ -71,13 +80,16 @@ class Model
         $primaryKey = $this->getKeyName();
 
         $db = \Kento1221\UserUsergroupCrudApp\Facades\Database::getConnection();
-        $data = $db->query("SELECT $fields FROM $table WHERE $primaryKey = $id;")->fetch();
+        $query = "SELECT $fields FROM $table WHERE $primaryKey = :id;";
 
-        if (!$data) {
-            throw new \Exception("User of id `$id` not found.");
+        $stmt = $db->prepare($query);
+        $stmt->bindParam(':id', $id, \PDO::PARAM_INT);
+
+        if ($stmt->execute()) {
+            return $this->hydrateModel($stmt->fetch(\PDO::FETCH_ASSOC));
         }
 
-        return $this->hydrateModel($data);
+        throw new \Exception("User of id `$id` not found.");
     }
 
     private function hydrateModel(array $data, bool $withHidden = false): self
@@ -122,15 +134,28 @@ class Model
         }
     }
 
+    /**
+     * @throws \Exception
+     */
     public function with(array $columns): self
     {
+        foreach ($columns as $column) {
+            if (!in_array($column, [...$this->fillable, 'created_at', 'updated_at'])) {
+                throw new \Exception('Trying to access column that is not a part of fillable model array or a timestamp.');
+            }
+        }
+
         $this->withColumns = $columns;
 
         return $this;
     }
 
-    public function delete(int $id): bool
+    /**
+     * @throws \Exception
+     */
+    public function delete(): bool
     {
+        $id = $this->getKey();
         $table = $this->getTable();
         $primaryKey = $this->getKeyName();
 
@@ -185,6 +210,7 @@ class Model
      * @param string $foreignTableLocalKey the colum name in the $foreignTable that holds called class's id.
      * @param string $foreignTableRelatedKey the column name in the $foreignTable that holds related model's id.
      * @return bool
+     * @throws \Exception
      */
     public function append(
         int    $relatedKeyValue,
@@ -199,7 +225,7 @@ class Model
         $db = \Kento1221\UserUsergroupCrudApp\Facades\Database::getConnection();
         $stmt = $db->prepare($query);
 
-        return $stmt->execute($relatedKeyValue);
+        return $stmt->execute([$this->getKey(), $relatedKeyValue]);
     }
 
     /**
@@ -209,6 +235,7 @@ class Model
      * @param string $foreignTableLocalKey the colum name in the $foreignTable that holds called class's id.
      * @param string $foreignTableRelatedKey the column name in the $foreignTable that holds related model's id.
      * @return bool
+     * @throws \Exception
      */
     public function appendMany(
         array  $relatedKeyValues,
@@ -251,7 +278,7 @@ class Model
         string $foreignTableRelatedKey
     ): bool {
 
-        $detached = $this->detachMany(
+        $detached = $this->syncDetachMany(
             $relatedKeyValues,
             $foreignTable,
             $foreignTableLocalKey,
@@ -281,19 +308,15 @@ class Model
     }
 
     /**
-     * Detach many related model ids from many-to-many relationship table.
-     * @param array $relatedKeyValues ID values of related model.
-     * @param string $foreignTable the name of many-to-many relationship-linking table.
-     * @param string $foreignTableLocalKey the colum name in the $foreignTable that holds called class's id.
-     * @param string $foreignTableRelatedKey the column name in the $foreignTable that holds related model's id.
-     * @return bool
+     * @throws \Exception
      */
-    public function detachMany(
+    private function syncDetachMany(
         array  $relatedKeyValues,
         string $foreignTable,
         string $foreignTableLocalKey,
         string $foreignTableRelatedKey
     ): bool {
+
         $db = \Kento1221\UserUsergroupCrudApp\Facades\Database::getConnection();
 
         $ids = implode(',', array_fill(0, count($relatedKeyValues), '?')) ?: '?';

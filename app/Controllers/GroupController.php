@@ -11,14 +11,14 @@ class GroupController extends Controller
 {
     const LIST_MAX_ITEMS_PER_PAGE = 10;
 
-    protected User      $user;
-    protected UserGroup $userGroup;
+    protected User      $userModel;
+    protected UserGroup $userGroupModel;
 
     public function __construct()
     {
         parent::__construct();
-        $this->user = new User();
-        $this->userGroup = new UserGroup();
+        $this->userModel = new User();
+        $this->userGroupModel = new UserGroup();
     }
 
     public function index()
@@ -30,11 +30,11 @@ class GroupController extends Controller
     {
         $page = filter_input(INPUT_GET, 'page', FILTER_VALIDATE_INT) ?? 1;
 
-        $groups = $this->userGroup
+        $groups = $this->userGroupModel
             ->with(['created_at', 'updated_at'])
             ->get(self::LIST_MAX_ITEMS_PER_PAGE, self::LIST_MAX_ITEMS_PER_PAGE * ($page - 1));
 
-        $nextPageCount = count($this->userGroup->get(self::LIST_MAX_ITEMS_PER_PAGE, self::LIST_MAX_ITEMS_PER_PAGE * $page));
+        $nextPageCount = count($this->userGroupModel->get(self::LIST_MAX_ITEMS_PER_PAGE, self::LIST_MAX_ITEMS_PER_PAGE * $page));
 
         $this->assignData([
             'groups'     => $groups,
@@ -51,7 +51,7 @@ class GroupController extends Controller
             $id = filter_input(INPUT_GET, 'groupId', FILTER_VALIDATE_INT) ?? -1;
 
             $this->assignData([
-                'group' => $this->userGroup->find($id)
+                'group' => $this->userGroupModel->find($id)
             ]);
 
             $this->render('group/edit');
@@ -66,7 +66,7 @@ class GroupController extends Controller
         try {
             $data = UpdateGroupRequestValidator::validate();
 
-            $group = $this->userGroup->find($data['id']);
+            $group = $this->userGroupModel->find($data['id']);
             $updated = $group->update($data);
 
             $this->jsonResponse([
@@ -92,7 +92,7 @@ class GroupController extends Controller
         try {
             $data = StoreGroupRequestValidator::validate();
 
-            $createdGroup = $this->userGroup->create($data);
+            $createdGroup = $this->userGroupModel->create($data);
 
             $this->jsonResponse([
                 'success' => true,
@@ -123,7 +123,8 @@ class GroupController extends Controller
         }
 
         try {
-            $deleted = $this->userGroup->delete($id);
+            $group = $this->userGroupModel->find($id);
+            $deleted = $group->delete();
 
             $this->jsonResponse([
                 'success' => $deleted,

@@ -12,14 +12,14 @@ class UserController extends Controller
 {
     const LIST_MAX_ITEMS_PER_PAGE = 10;
 
-    protected User      $user;
-    protected UserGroup $userGroup;
+    protected User      $userModel;
+    protected UserGroup $userGroupModel;
 
     public function __construct()
     {
         parent::__construct();
-        $this->user = new User();
-        $this->userGroup = new UserGroup();
+        $this->userModel = new User();
+        $this->userGroupModel = new UserGroup();
     }
 
     public function index()
@@ -31,11 +31,11 @@ class UserController extends Controller
     {
         $page = filter_input(INPUT_GET, 'page', FILTER_VALIDATE_INT) ?? 1;
 
-        $users = $this->user
+        $users = $this->userModel
             ->with(['created_at', 'updated_at'])
             ->get(self::LIST_MAX_ITEMS_PER_PAGE, self::LIST_MAX_ITEMS_PER_PAGE * ($page - 1));
 
-        $nextPageCount = count($this->user->get(self::LIST_MAX_ITEMS_PER_PAGE, self::LIST_MAX_ITEMS_PER_PAGE * $page));
+        $nextPageCount = count($this->userModel->get(self::LIST_MAX_ITEMS_PER_PAGE, self::LIST_MAX_ITEMS_PER_PAGE * $page));
 
         $this->assignData([
             'users'      => $users,
@@ -52,12 +52,12 @@ class UserController extends Controller
             $id = filter_input(INPUT_GET, 'userId', FILTER_VALIDATE_INT) ?? -1;
 
             /** @var User $user */
-            $user = $this->user->find($id);
+            $user = $this->userModel->find($id);
 
             $this->assignData([
                 'user'       => $user,
                 'userGroups' => $user->groups(),
-                'groups'     => $this->userGroup->getAll()
+                'groups'     => $this->userGroupModel->getAll()
             ]);
 
             $this->render('user/edit');
@@ -72,7 +72,7 @@ class UserController extends Controller
         try {
             $data = UpdateUserRequestValidator::validate();
 
-            $user = $this->user->find($data['id']);
+            $user = $this->userModel->find($data['id']);
             $updated = $user->update($data);
 
             $synced = $user->sync(
@@ -110,7 +110,8 @@ class UserController extends Controller
         }
 
         try {
-            $deleted = $this->user->delete($id);
+            $user = $this->userModel->find($id);
+            $deleted = $user->delete();
 
             $this->jsonResponse([
                 'success' => $deleted,
@@ -128,7 +129,7 @@ class UserController extends Controller
     public function create()
     {
         $this->assignData([
-            'groups' => $this->userGroup->getAll()
+            'groups' => $this->userGroupModel->getAll()
         ]);
 
         $this->render('user/new');
@@ -140,7 +141,7 @@ class UserController extends Controller
             $data = StoreUserRequestValidator::validate();
             $data['password'] = password_hash($data['password'], PASSWORD_BCRYPT, ['cost' => 12]);
 
-            $createdUser = $this->user->create($data);
+            $createdUser = $this->userModel->create($data);
             $appended = $createdUser->appendMany(
                 $data['groups'],
                 'user_user_groups',
