@@ -18,6 +18,10 @@ class UpdateGroupRequestValidator implements RequestValidator
             throw new \Exception('Missing name parameter.');
         }
 
+        if (!UserGroupHelper::checkIfGroupIdExistsInDatabase($id)) {
+            throw new \Exception('Provided group id does not exist.');
+        };
+
         if (UserGroupHelper::checkIfNameExistsInDatabase($name)) {
             throw new \Exception('Provided group name already exists.');
         };

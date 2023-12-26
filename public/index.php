@@ -5,7 +5,7 @@ require_once __DIR__ . '/../vendor/autoload.php';
 $request = $_SERVER['REQUEST_URI'];
 $parts = explode('/', trim(explode('?', $request)[0], '/'));
 
-$controllerName = $parts[0] ?: 'User';
+$controllerName = $parts[0] ?: 'Home';
 $action = $parts[1] ?? 'index';
 
 $controller = 'Kento1221\\UserUsergroupCrudApp\\Controllers\\' . ucfirst(strtolower($controllerName)) . 'Controller';

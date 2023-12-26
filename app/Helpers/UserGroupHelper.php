@@ -37,4 +37,17 @@ class UserGroupHelper
 
         return $stmt->rowCount() > 0;
     }
+
+    public static function checkIfGroupIdExistsInDatabase(int $id): bool
+    {
+        $db = Database::getConnection();
+        $query = "SELECT * FROM user_groups WHERE id = :id;";
+
+        $stmt = $db->prepare($query);
+        $stmt->bindParam(':id', $id, PDO::PARAM_INT);
+        $stmt->execute();
+
+        return $stmt->rowCount() > 0;
+    }
+
 }

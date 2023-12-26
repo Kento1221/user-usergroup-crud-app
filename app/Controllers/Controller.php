@@ -2,7 +2,7 @@
 
 namespace Kento1221\UserUsergroupCrudApp\Controllers;
 
-class Controller
+abstract class Controller
 {
     protected array $data = [];
 

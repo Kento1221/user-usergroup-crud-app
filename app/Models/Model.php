@@ -60,7 +60,7 @@ class Model
     /**
      * @throws \Exception
      */
-    public function getById(int $id): self
+    public function find(int $id): self
     {
         if ($id <= 0) {
             throw new \InvalidArgumentException('Provided id parameter of invalid value.');
@@ -92,7 +92,7 @@ class Model
         return $model;
     }
 
-    public function update(int $id, array $data): bool
+    public function update(array $data): bool
     {
         try {
             $table = $this->getTable();
@@ -110,7 +110,7 @@ class Model
             $parametersString = implode(', ', $parameters);
 
             $query = "UPDATE $table SET $parametersString WHERE $primaryKey = :primaryKey";
-            $valuesToBind[':primaryKey'] = $id;
+            $valuesToBind[':primaryKey'] = $this->getKey();
 
             $db = \Kento1221\UserUsergroupCrudApp\Facades\Database::getConnection();
             $stmt = $db->prepare($query);
@@ -172,7 +172,7 @@ class Model
             $id = $db->lastInsertId();
             unset($db);
 
-            return $this->getById($id);
+            return $this->find($id);
         }
 
         throw new \Exception('New user could not be created');

@@ -51,7 +51,7 @@ class GroupController extends Controller
             $id = filter_input(INPUT_GET, 'groupId', FILTER_VALIDATE_INT) ?? -1;
 
             $this->assignData([
-                'group' => $this->userGroup->getById($id)
+                'group' => $this->userGroup->find($id)
             ]);
 
             $this->render('group/edit');
@@ -65,7 +65,9 @@ class GroupController extends Controller
     {
         try {
             $data = UpdateGroupRequestValidator::validate();
-            $updated = $this->userGroup->update($data['id'], $data);
+
+            $group = $this->userGroup->find($data['id']);
+            $updated = $group->update($data);
 
             $this->jsonResponse([
                 'success' => $updated,

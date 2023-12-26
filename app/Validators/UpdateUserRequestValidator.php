@@ -3,6 +3,7 @@
 namespace Kento1221\UserUsergroupCrudApp\Validators;
 
 use Kento1221\UserUsergroupCrudApp\Helpers\UserGroupHelper;
+use Kento1221\UserUsergroupCrudApp\Helpers\UserHelper;
 
 class UpdateUserRequestValidator implements RequestValidator
 {
@@ -30,6 +31,10 @@ class UpdateUserRequestValidator implements RequestValidator
             throw new \Exception(
                 'Missing parameters. Required parameters of id, email, first_name, last_name, date_of_birth.'
             );
+        }
+
+        if (!UserHelper::checkIfUserExists($id)) {
+            throw new \Exception("The user of id `$id` does not exist.");
         }
 
         return [

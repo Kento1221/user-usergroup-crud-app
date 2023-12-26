@@ -52,7 +52,7 @@ class UserController extends Controller
             $id = filter_input(INPUT_GET, 'userId', FILTER_VALIDATE_INT) ?? -1;
 
             /** @var User $user */
-            $user = $this->user->getById($id);
+            $user = $this->user->find($id);
 
             $this->assignData([
                 'user'       => $user,
@@ -71,8 +71,9 @@ class UserController extends Controller
     {
         try {
             $data = UpdateUserRequestValidator::validate();
-            $updated = $this->user->update($data['id'], $data);
-            $user = $this->user->getById($data['id']);
+
+            $user = $this->user->find($data['id']);
+            $updated = $user->update($data);
 
             $synced = $user->sync(
                 $data['groups'],
