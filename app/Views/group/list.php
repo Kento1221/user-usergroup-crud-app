@@ -80,21 +80,21 @@ $nextPage = $isNextPage ? $page + 1 : $page;
 <script>
     $(document).ready(function () {
 
-        $('button.delete-group').click(function () {
-            const groupId = $(this).data('group-id');
+        $("button.delete-group").click(function () {
+            const groupId = $(this).data("group-id");
 
-            if (confirm('Are you sure you want to delete this group?')) {
+            if (confirm("Are you sure you want to delete this group?")) {
                 $.ajax({
-                    url: '/group/delete?groupId=' + groupId,
-                    type: 'DELETE',
+                    url: "/group/delete?groupId=" + groupId,
+                    type: "DELETE",
                     success: function (result) {
                         if (result.success) {
-                            showSuccess(result.message ?? 'The group has been deleted successfully!');
+                            showSuccess(result.message ?? "The group has been deleted successfully!");
                             setTimeout(function () {
                                 window.location.reload();
                             }, 1500);
                         } else {
-                            showError(result.message ?? 'The group could not be deleted.');
+                            showError(result.message ?? "The group could not be deleted.");
                         }
                     }
                 });

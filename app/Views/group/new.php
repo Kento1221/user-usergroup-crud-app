@@ -62,7 +62,7 @@
                     if (response.success) {
                         showSuccess(response.message);
                         setTimeout(function () {
-                            window.location = '/group/edit?groupId=' + response.group.id
+                            window.location = "/group/edit?groupId=" + response.group.id
                         }, 1500)
                     } else {
                         showError(response.message);

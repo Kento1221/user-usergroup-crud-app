@@ -25,12 +25,12 @@
                value="<?php echo $user->id; ?>">
 
         <div class="mb-4">
-            <label for="email"
-                   class="block text-gray-700 text-sm font-bold mb-2">E-mail address:</label>
-            <input type="email"
-                   id="email"
-                   name="email"
-                   value="<?php echo $user->email; ?>"
+            <label for="name"
+                   class="block text-gray-700 text-sm font-bold mb-2">Username:</label>
+            <input type="text"
+                   id="name"
+                   name="name"
+                   value="<?php echo $user->name; ?>"
                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
         </div>
 
@@ -104,20 +104,20 @@
 <script>
     $(document).ready(function () {
 
-        let originalUserHash = '<?php echo implode('-', [
-            $user->email,
+        let originalUserHash = "<?php echo implode('-', [
+            $user->name,
             $user->first_name,
             $user->last_name,
             $user->date_of_birth,
             implode(',', array_column($userGroups, 'id'))
-        ]); ?>';
+        ]); ?>";
 
         const groupSelect = $("select#groups");
         const submitButton = $("#editUserForm button[type='submit']");
 
         groupSelect.select2();
         const hashUserFields = () => {
-            const fieldIds = ["email", "firstName", "lastName", 'dateOfBirth', 'groups'];
+            const fieldIds = ["name", "firstName", "lastName", "dateOfBirth", "groups"];
             let hash = "";
 
             for (let i = 0; i < fieldIds.length; i++) {
@@ -143,7 +143,7 @@
             const userId = $("#userId").val();
             const data = {
                 id: userId,
-                email: $("#email").val(),
+                name: $("#name").val(),
                 first_name: $("#firstName").val(),
                 last_name: $("#lastName").val(),
                 date_of_birth: $("#dateOfBirth").val(),
@@ -171,21 +171,21 @@
             });
         });
 
-        $('button.delete-user').click(function () {
+        $("button.delete-user").click(function () {
             const userId = $("input#userId").val();
 
-            if (confirm('Are you sure you want to delete this user?')) {
+            if (confirm("Are you sure you want to delete this user?")) {
                 $.ajax({
-                    url: '/user/delete?userId=' + userId,
-                    type: 'DELETE',
+                    url: "/user/delete?userId=" + userId,
+                    type: "DELETE",
                     success: function (result) {
                         if (result.success) {
-                            showSuccess(result.message ?? 'The user has been deleted successfully!');
+                            showSuccess(result.message ?? "The user has been deleted successfully!");
                             setTimeout(function () {
                                 window.location = "/user";
                             }, 1500);
                         } else {
-                            showError(result.message ?? 'The user could not be deleted.');
+                            showError(result.message ?? "The user could not be deleted.");
                         }
                     }
                 });

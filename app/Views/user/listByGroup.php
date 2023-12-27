@@ -22,8 +22,9 @@
         <thead>
         <tr class="bg-gray-100">
             <th class="px-4 py-2">ID</th>
-            <th class="px-4 py-2">E-mail</th>
             <th class="px-4 py-2">Name</th>
+            <th class="px-4 py-2">First name</th>
+            <th class="px-4 py-2">Last name</th>
             <th class="px-4 py-2">Date of birth</th>
             <th class="px-4 py-2">Group count</th>
             <th class="px-4 py-2">Created at</th>
@@ -40,8 +41,9 @@
             echo <<<EOL
                 <tr class="$rowClasses hover:bg-gray-200">
                     <td class="text-center">$user->id</td>
-                    <td class="text-center">$user->email</td>
-                    <td class="text-center">$user->first_name $user->last_name</td>
+                    <td class="text-center">$user->name</td>
+                    <td class="text-center">$user->first_name</td>
+                    <td class="text-center">$user->last_name</td>
                     <td class="text-center">$user->date_of_birth</td>
                     <td class="text-center">$groupCount</td>
                     <td class="text-center text-xs">$user->created_at</td>
@@ -64,21 +66,21 @@
 <script>
     $(document).ready(function () {
 
-        $('button.delete-user').click(function () {
-            const userId = $(this).data('user-id');
+        $("button.delete-user").click(function () {
+            const userId = $(this).data("user-id");
 
-            if (confirm('Are you sure you want to delete this user?')) {
+            if (confirm("Are you sure you want to delete this user?")) {
                 $.ajax({
-                    url: '/user/delete?userId=' + userId,
-                    type: 'DELETE',
+                    url: "/user/delete?userId=" + userId,
+                    type: "DELETE",
                     success: function (result) {
                         if (result.success) {
-                            showSuccess(result.message ?? 'The user has been deleted successfully!');
+                            showSuccess(result.message ?? "The user has been deleted successfully!");
                             setTimeout(function () {
                                 window.location.reload();
                             }, 1500);
                         } else {
-                            showError(result.message ?? 'The user could not be deleted.');
+                            showError(result.message ?? "The user could not be deleted.");
                         }
                     }
                 });

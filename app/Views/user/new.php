@@ -21,11 +21,11 @@
     <form id="addUserForm">
 
         <div class="mb-4">
-            <label for="email"
-                   class="block text-gray-700 text-sm font-bold mb-2">E-mail address:</label>
-            <input type="email"
-                   id="email"
-                   name="email"
+            <label for="name"
+                   class="block text-gray-700 text-sm font-bold mb-2">Username:</label>
+            <input type="text"
+                   id="name"
+                   name="name"
                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
         </div>
 
@@ -113,12 +113,12 @@
             const password = $("#password");
 
             if (password.val() !== $("#checkPassword").val()) {
-                showError('Password and check password have to match.');
+                showError("Password and check password have to match.");
                 return;
             }
 
             const data = {
-                email: $("#email").val(),
+                name: $("#name").val(),
                 first_name: $("#firstName").val(),
                 last_name: $("#lastName").val(),
                 date_of_birth: $("#dateOfBirth").val(),
@@ -135,7 +135,7 @@
                     if (response.success) {
                         showSuccess(response.message);
                         setTimeout(function () {
-                            window.location = '/user/edit?userId=' + response.user.id
+                            window.location = "/user/edit?userId=" + response.user.id
                         }, 1500)
                     } else {
                         showError(response.message);

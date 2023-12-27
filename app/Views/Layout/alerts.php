@@ -19,7 +19,7 @@
 <script>
     $(document).ready(function () {
 
-        $('.alert .close').click(function () {
+        $(".alert .close").click(function () {
             $(this).parent().hide();
             $(this).parent().find("span.alert-text").text("");
         });
