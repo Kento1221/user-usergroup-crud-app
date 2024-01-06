@@ -165,12 +165,12 @@ class Model
     }
 
     /**
-     * Create a model using data array. If model was created, the new instance will be returned.
+     * Create a model using data array. If model was created, the new instance's ID will be returned.
      * @param array $data
-     * @return Model
+     * @return int
      * @throws \Exception
      */
-    public function create(array $data): self
+    public function create(array $data): int
     {
         $table = $this->getTable();
         $dataKeys = array_keys($data);
@@ -190,15 +190,15 @@ class Model
         $columnsString = implode(', ', $columns);
         $placeholdersString = implode(', ', $placeholders);
 
-        $query = "INSERT INTO $table ($columnsString) VALUES ($placeholdersString)";
+        $query = "INSERT INTO $table ($columnsString) VALUES ($placeholdersString) RETURNING $primaryKey;";
         $db = \Kento1221\UserUsergroupCrudApp\Facades\Database::getConnection();
         $stmt = $db->prepare($query);
 
         if ($stmt->execute($valuesToBind)) {
-            $id = $db->lastInsertId();
+            $id = $stmt->fetchColumn();
             unset($db);
 
-            return $this->find($id);
+            return (int)$id;
         }
 
         throw new \Exception('New user could not be created');
@@ -249,7 +249,7 @@ class Model
         $query = "
             INSERT INTO $foreignTable ($foreignTableLocalKey, $foreignTableRelatedKey) 
             VALUES $wildcards 
-            ON DUPLICATE KEY UPDATE id = id;";
+            ON DUPLICATE KEY UPDATE id = id;"; // (it won't trigger row update even though id is assigned to itself
 
         $values = [];
         foreach ($relatedKeyValues ?: [0] as $relatedKeyValue) {

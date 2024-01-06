@@ -36,10 +36,11 @@ class User extends Model
 
         $stmt->execute();
         $groupModel = (new UserGroup())->with(['created_at', 'updated_at']);
+        $result = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
 
         return array_map(
             fn(array $group) => $groupModel->hydrateModel($group),
-            $stmt->fetchAll(PDO::FETCH_ASSOC) ?: []
+            $result
         );
     }
 }

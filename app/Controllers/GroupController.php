@@ -92,7 +92,8 @@ class GroupController extends Controller
         try {
             $data = StoreGroupRequestValidator::validate();
 
-            $createdGroup = $this->userGroupModel->create($data);
+            $createdGroupId = $this->userGroupModel->create($data);
+            $createdGroup = $this->userGroupModel->find($createdGroupId);
 
             $this->jsonResponse([
                 'success' => true,

@@ -141,7 +141,9 @@ class UserController extends Controller
             $data = StoreUserRequestValidator::validate();
             $data['password'] = password_hash($data['password'], PASSWORD_BCRYPT, ['cost' => 12]);
 
-            $createdUser = $this->userModel->create($data);
+            $createdUserId = $this->userModel->create($data);
+            $createdUser = $this->userModel->find($createdUserId);
+
             $appended = $createdUser->appendMany(
                 $data['groups'],
                 'user_user_groups',
